@@ -1,5 +1,4 @@
 from turtle import pos
-import pygame
 from ChessConstants import *
 from Board import Board
 from Pieces import *

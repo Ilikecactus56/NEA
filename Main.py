@@ -1,5 +1,3 @@
-import pygame as p
-
 from Game import Game
 from ChessConstants import *
 from Rendering import Rendering

@@ -1,15 +1,15 @@
 from Game import Game
-from ChessConstants import *
-from Rendering import Rendering
-from Pieces import *
 from Board import Board
-
+from ChessConstants import *
+from Pieces import *
 
 class ChessAI:
     def __init__(self, colour, depth=3):
         self.colour = colour
         self.depth = depth
         self.game = Game()
+        self.board = Board()
+        
     # ---------------------------------------------
     # Evaluation function (material-based)
     # ---------------------------------------------
@@ -57,7 +57,7 @@ class ChessAI:
         if maximizing_player:
             max_eval = float("-inf")
 
-            for from_pos, to_pos in board.get_all_legal_moves(self.colour):
+            for from_pos, to_pos in self.game.get_all_legal_moves(self.colour):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
@@ -76,7 +76,7 @@ class ChessAI:
         else:
             min_eval = float("inf")
 
-            for from_pos, to_pos in board.get_all_legal_moves(opponent):
+            for from_pos, to_pos in self.game.get_all_legal_moves(opponent):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
@@ -98,7 +98,7 @@ class ChessAI:
     def choose_move(self, board):
         best_move = None
         best_value = float("-inf")
-        self.game = Game()
+        self.board = board
 
         for from_pos, to_pos in self.game.get_all_legal_moves(self.colour):
             new_board = board.copy()

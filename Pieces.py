@@ -6,6 +6,7 @@
 from ChessConstants import *
 from Board import *
 
+
 class Piece:
 
     def __init__(self, colour, position):
