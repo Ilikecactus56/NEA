@@ -118,6 +118,17 @@ class Board:
                         return True
         return False
     
+    def get_all_legal_moves(self, colour):
+        moves = {}
+        for row in range(8):
+            for col in range(8):
+                piece = self.board.get_piece((row, col))
+                if piece and piece.colour == colour:
+                    legal_moves = piece.get_moves(self.board)
+                    if legal_moves:
+                      moves[(row, col)] = legal_moves
+        return moves
+    
     def find_king(self, colour):
         for row in self.grid:
             for piece in row:
