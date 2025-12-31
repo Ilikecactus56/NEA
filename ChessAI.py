@@ -39,27 +39,94 @@ class ChessAI:
     # ---------------------------------------------
     # Minimax with alpha–beta pruning
     # ---------------------------------------------
-    def minimax(self, board, depth, alpha, beta, maximizing_player):
-        # Terminal conditions
+    '''def minimax(self, board, depth, alpha, beta, maximizing_player):
+        print("ENTERED MINIMAX | depth:", depth)
+
+        # Terminal depth
         if depth == 0:
             return self.evaluate_board(board)
-
-        if board.is_checkmate(self.colour):
-            return -float("inf")
-
+        print("DEPTH NOT ZERO")
         opponent = "black" if self.colour == "white" else "white"
-        if board.is_checkmate(opponent):
-            return float("inf")
-
-        if board.is_stalemate(self.colour) or board.is_stalemate(opponent):
+        current_colour = self.colour if maximizing_player else opponent
+        print("CURRENT COLOUR:", current_colour)
+        # Terminal game states
+        if board.is_in_checkmate(current_colour):
+            return -float("inf") if maximizing_player else float("inf")
+        print("NOT CHECKMATE")
+        if board.is_in_stalemate(current_colour):
             return 0
-
+        print("NOT STALEMATE")
+        legal_moves = board.get_all_legal_moves(current_colour)
+        print("LEGAL MOVES:", legal_moves)
         if maximizing_player:
             max_eval = float("-inf")
 
-            for from_pos, to_pos in self.game.get_all_legal_moves(self.colour):
+            for from_pos, moves in legal_moves.items():
+                for to_pos in moves:
+                    new_board = board.copy()
+                    new_board._force_move(from_pos, to_pos)
+
+                    eval_score = self.minimax(
+                        new_board, depth - 1, alpha, beta, False
+                    )
+
+                    max_eval = max(max_eval, eval_score)
+                    alpha = max(alpha, eval_score)
+
+                    if beta <= alpha:
+                        break
+
+            return max_eval
+        else:
+            min_eval = float("inf")
+        print("MINIMIZING")
+
+        for from_pos, moves in legal_moves.items():
+            for to_pos in moves:
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
+
+                eval_score = self.minimax(
+                    new_board, depth - 1, alpha, beta, True
+                )
+
+                min_eval = min(min_eval, eval_score)
+                beta = min(beta, eval_score)
+
+                if beta <= alpha:
+                    break
+
+        return min_eval'''
+    
+    def minimax(self, board, depth, alpha, beta, maximizing_player):
+        print(f"MINIMAX depth={depth}")
+
+        # Terminal condition
+        if depth == 0:
+            return self.evaluate_board(board)
+
+        opponent = "black" if self.colour == "white" else "white"
+        print("OPPONENT:", opponent)
+        # Checkmate & stalemate
+        '''if board.is_in_checkmate(self.colour):
+            print("CHECKMATE DETECTED")
+            return -float("inf")
+
+        elif board.is_in_checkmate(opponent):
+            print("OPPONENT CHECKMATE DETECTED")
+            return float("inf")
+        elif board.is_in_stalemate(self.colour) or board.is_in_stalemate(opponent):
+            return 0
+        print("NO CHECKMATE/STALEMATE")'''
+
+        if maximizing_player == True:
+            print("MAXIMIZING")
+            max_eval = float("-inf")
+
+            for from_pos, to_pos in board.get_all_legal_moves(self.colour):
+                new_board = board.copy()
+                new_board._force_move(from_pos, to_pos)
+                print("MAXIMIZING")
 
                 eval_score = self.minimax(
                     new_board, depth - 1, alpha, beta, False
@@ -76,7 +143,7 @@ class ChessAI:
         else:
             min_eval = float("inf")
 
-            for from_pos, to_pos in self.game.get_all_legal_moves(opponent):
+            for from_pos, to_pos in board.get_all_legal_moves(opponent):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
@@ -91,6 +158,7 @@ class ChessAI:
                     break
 
             return min_eval
+
 
     # ---------------------------------------------
     # Public method used by Game

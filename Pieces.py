@@ -71,8 +71,10 @@ class Pawn(Piece):
             moves.append(one_step)
 
         two_step = (row + 2 * direction, col) # For a pawn that hasn't moved yet
-        if self.has_moved == False and board.is_empty(two_step) and board.is_empty(one_step):
-            moves.append(two_step)
+        # allow two-step only from starting rank and ensure the square is in bounds
+        if row == start_row:
+            if board.in_bounds(two_step) and board.is_empty(two_step) and board.is_empty(one_step):
+                moves.append(two_step)
         
         for diagonalcapture in (-1, 1):
             target = (row + direction, col + diagonalcapture)
@@ -174,14 +176,13 @@ class King(Piece):
         row, col = self.position
 
         for deltar, deltac in self.directions:
-            r, c = row + deltar , col + deltac
-            while 0 <= r < 8  and 0 <= c < 8:
+            r, c = row + deltar, col + deltac
+            if 0 <= r < 8 and 0 <= c < 8:
                 if self.empty_at(board, (r, c)):
-                    moves.append((r,c))
-                elif self.enemy_at(board, (r, c)): 
+                    moves.append((r, c))
+                elif self.enemy_at(board, (r, c)):
                     moves.append((r, c))
 
-                
         return moves
     
 class Knight(Piece):

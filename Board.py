@@ -118,16 +118,29 @@ class Board:
                         return True
         return False
     
-    '''def get_all_legal_moves(self, colour):
-        moves = {}
+    def get_all_legal_moves(self, colour):
+        moves = []
+
         for row in range(8):
             for col in range(8):
-                piece = self.get_piece((row, col))
+                piece = self.grid[row][col]
                 if piece and piece.colour == colour:
-                    legal_moves = piece.get_moves(self)
-                    if legal_moves:
-                      moves[(row, col)] = legal_moves
-        return moves'''
+                    from_pos = (row, col)
+                    print("FROM_POS:", from_pos)
+                    print("Piece Moves:", piece.get_moves(self))
+
+                    for to_pos in piece.get_moves(self):
+                        print("TO_POS:", to_pos)
+                        # OPTIONAL SAFETY CHECK:
+                        # Ensure move does not leave king in check
+                        test_board = self.copy()
+                        test_board._force_move(from_pos, to_pos)
+
+                        if not test_board.is_in_check(colour):
+                            moves.append((from_pos, to_pos))
+
+        return moves
+
     
     def find_king(self, colour):
         for row in self.grid:
