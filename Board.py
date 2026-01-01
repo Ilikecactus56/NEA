@@ -126,11 +126,8 @@ class Board:
                 piece = self.grid[row][col]
                 if piece and piece.colour == colour:
                     from_pos = (row, col)
-                    print("FROM_POS:", from_pos)
-                    print("Piece Moves:", piece.get_moves(self))
 
                     for to_pos in piece.get_moves(self):
-                        print("TO_POS:", to_pos)
                         # OPTIONAL SAFETY CHECK:
                         # Ensure move does not leave king in check
                         test_board = self.copy()
@@ -141,6 +138,16 @@ class Board:
 
         return moves
 
+    def get_all_legal_moves_ai(self, colour):
+        moves = {}
+        for row in range(8):
+            for col in range(8):
+                piece = self.get_piece((row, col))
+                if piece and piece.colour == colour:
+                    legal_moves = piece.get_moves(self)
+                    if legal_moves:
+                      moves[(row, col)] = legal_moves
+        return moves
     
     def find_king(self, colour):
         for row in self.grid:

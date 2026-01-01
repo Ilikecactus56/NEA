@@ -36,68 +36,6 @@ class ChessAI:
 
         return score
 
-    # ---------------------------------------------
-    # Minimax with alpha–beta pruning
-    # ---------------------------------------------
-    '''def minimax(self, board, depth, alpha, beta, maximizing_player):
-        print("ENTERED MINIMAX | depth:", depth)
-
-        # Terminal depth
-        if depth == 0:
-            return self.evaluate_board(board)
-        print("DEPTH NOT ZERO")
-        opponent = "black" if self.colour == "white" else "white"
-        current_colour = self.colour if maximizing_player else opponent
-        print("CURRENT COLOUR:", current_colour)
-        # Terminal game states
-        if board.is_in_checkmate(current_colour):
-            return -float("inf") if maximizing_player else float("inf")
-        print("NOT CHECKMATE")
-        if board.is_in_stalemate(current_colour):
-            return 0
-        print("NOT STALEMATE")
-        legal_moves = board.get_all_legal_moves(current_colour)
-        print("LEGAL MOVES:", legal_moves)
-        if maximizing_player:
-            max_eval = float("-inf")
-
-            for from_pos, moves in legal_moves.items():
-                for to_pos in moves:
-                    new_board = board.copy()
-                    new_board._force_move(from_pos, to_pos)
-
-                    eval_score = self.minimax(
-                        new_board, depth - 1, alpha, beta, False
-                    )
-
-                    max_eval = max(max_eval, eval_score)
-                    alpha = max(alpha, eval_score)
-
-                    if beta <= alpha:
-                        break
-
-            return max_eval
-        else:
-            min_eval = float("inf")
-        print("MINIMIZING")
-
-        for from_pos, moves in legal_moves.items():
-            for to_pos in moves:
-                new_board = board.copy()
-                new_board._force_move(from_pos, to_pos)
-
-                eval_score = self.minimax(
-                    new_board, depth - 1, alpha, beta, True
-                )
-
-                min_eval = min(min_eval, eval_score)
-                beta = min(beta, eval_score)
-
-                if beta <= alpha:
-                    break
-
-        return min_eval'''
-    
     def minimax(self, board, depth, alpha, beta, maximizing_player):
 
         # Terminal condition
@@ -159,12 +97,14 @@ class ChessAI:
     def find_best_move(self, board):
         best_move = None
         best_value = float("-inf")
+        print(board.grid)
+        print(board.get_all_legal_moves_ai(self.colour))
 
-        all_moves = self.game.get_all_legal_moves(self.colour)
+        all_moves = board.get_all_legal_moves_ai(self.colour)
 
         for from_pos, move_list in all_moves.items():
             for to_pos in move_list:
-                new_board = self.game.board.copy()
+                new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
                 value = self.minimax(
