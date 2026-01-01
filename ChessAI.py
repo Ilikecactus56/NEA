@@ -99,34 +99,27 @@ class ChessAI:
         return min_eval'''
     
     def minimax(self, board, depth, alpha, beta, maximizing_player):
-        print(f"MINIMAX depth={depth}")
 
         # Terminal condition
         if depth == 0:
             return self.evaluate_board(board)
 
         opponent = "black" if self.colour == "white" else "white"
-        print("OPPONENT:", opponent)
         # Checkmate & stalemate
-        '''if board.is_in_checkmate(self.colour):
-            print("CHECKMATE DETECTED")
+        if board.is_in_checkmate(self.colour):
             return -float("inf")
 
         elif board.is_in_checkmate(opponent):
-            print("OPPONENT CHECKMATE DETECTED")
             return float("inf")
         elif board.is_in_stalemate(self.colour) or board.is_in_stalemate(opponent):
             return 0
-        print("NO CHECKMATE/STALEMATE")'''
 
         if maximizing_player == True:
-            print("MAXIMIZING")
             max_eval = float("-inf")
 
             for from_pos, to_pos in board.get_all_legal_moves(self.colour):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
-                print("MAXIMIZING")
 
                 eval_score = self.minimax(
                     new_board, depth - 1, alpha, beta, False
@@ -163,25 +156,28 @@ class ChessAI:
     # ---------------------------------------------
     # Public method used by Game
     # ---------------------------------------------
-    def choose_move(self, board):
+    def find_best_move(self, board):
         best_move = None
         best_value = float("-inf")
-        self.board = board
 
-        for from_pos, to_pos in self.game.get_all_legal_moves(self.colour):
-            new_board = board.copy()
-            new_board._force_move(from_pos, to_pos)
+        all_moves = self.game.get_all_legal_moves(self.colour)
 
-            board_value = self.minimax(
-                new_board,
-                self.depth - 1,
-                float("-inf"),
-                float("inf"),
-                False
-            )
+        for from_pos, move_list in all_moves.items():
+            for to_pos in move_list:
+                new_board = self.game.board.copy()
+                new_board._force_move(from_pos, to_pos)
 
-            if board_value > best_value:
-                best_value = board_value
-                best_move = (from_pos, to_pos)
+                value = self.minimax(
+                    new_board,
+                    self.depth - 1,
+                    float("-inf"),
+                    float("inf"),
+                    False
+                )
+
+                if value > best_value:
+                    best_value = value
+                    best_move = (from_pos, to_pos)
 
         return best_move
+
