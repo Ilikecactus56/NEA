@@ -18,6 +18,7 @@ class Main:
         runs = 0
         while running:
             self.rendering.draw()
+            self.rendering.highlight_selection()
             p.display.flip()
             self.rendering.clock.tick(60)
 
@@ -30,14 +31,17 @@ class Main:
                     col = mouse_x // SQSIZE
                     row = mouse_y // SQSIZE
                     pos = (row, col)
+                    self.game.handle_click(pos)
 
-                    self.selectedsquare.append(pos)
+                    '''self.selectedsquare.append(pos)
                     print("selectedsquare:", self.selectedsquare)
                     print(len(self.selectedsquare))
 
                     if self.game.select_piece((row, col)):
                         print(f"Selected piece at {pos}")
-                        
+                    else:
+                        print(f"No piece to select at {pos}")
+
                     if len(self.selectedsquare) == 2:
                             from_pos = self.selectedsquare[0]
                             to_pos = self.selectedsquare[1]
@@ -48,13 +52,14 @@ class Main:
                                 print(f"Moved piece from {from_pos} to {to_pos}")
                             else:
                                 print(f"Invalid move from {from_pos} to {to_pos}")
+                                self.selectedsquare = []
                             self.selectedsquare = []
 
                     if not self.game.board.in_bounds(pos):
                         continue
                     
                     runs+=1
-                    print("Frame:", runs)
+                    print("Frame:", runs)'''
 
         p.quit()
 

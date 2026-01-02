@@ -14,10 +14,66 @@ class Game:
 
     def select_piece(self, position):
         piece = self.board.get_piece(position)
+        
+
+        # Click same piece again → deselect
+        if self.selected_piece and self.selected_piece.position == position:
+            self.selected_piece = None
+            self.legal_moves = []
+            return False
+
+        # Select own piece
         if piece and piece.colour == self.turn:
             self.selected_piece = piece
+            self.legal_moves = piece.get_moves(self.board)
             return True
+        
+        if piece and piece.colour != self.turn:
+            self.selected_piece = None
+            self.legal_moves = []
+            return False
+
         return False
+    
+    def handle_click(self, position):
+        """
+        Handles all mouse click logic:
+        - selecting a piece
+        - deselecting a piece
+        - moving a selected piece
+        """
+
+        # Click outside the board
+        if not self.board.in_bounds(position):
+            self.selected_piece = None
+            return
+
+        clicked_piece = self.board.get_piece(position)
+
+        # CASE 1: No piece selected yet → try to select
+        if self.selected_piece is None:
+            if clicked_piece and clicked_piece.colour == self.turn:
+                self.selected_piece = clicked_piece
+            return
+
+        # CASE 2: Clicked the same piece again → deselect
+        if clicked_piece == self.selected_piece:
+            self.selected_piece = None
+            return
+
+        # CASE 3: Try to move selected piece
+        if self.move_selected_piece(position):
+            # Successful move
+            self.selected_piece = None
+            return
+
+        # CASE 4: Click another own piece → switch selection
+        if clicked_piece and clicked_piece.colour == self.turn:
+            self.selected_piece = clicked_piece
+            return
+
+        # CASE 5: Invalid click → clear selection
+        self.selected_piece = None
     
     def move_selected_piece(self, to_pos):
         if self.selected_piece is None:
@@ -105,77 +161,7 @@ class Game:
         for row in self.board.grid:
             print([str(piece) if piece else "." for piece in row])
 
-    def handle_click(self, pos):  # pos is the raw mouse (x,y)
-    # Convert pixel coordinates to grid
-        row = pos[1] // SQSIZE
-        col = pos[0] // SQSIZE
-        pos = (row, col)
-
-        clicked_piece = self.board.get_piece(pos)
-
-        # CASE 1: No piece selected
-        if self.selected_piece is None:
-            if clicked_piece and clicked_piece.colour == self.get_turn():
-                self.selected_piece = clicked_piece
-                self.legal_moves = clicked_piece.get_moves(self.board)
-            return
-    # CASE 2: Clicked a legal move
-        if pos in self.legal_moves:
-            if pos != self.selected_piece.position:  # Prevent moving to same square
-                self.board.move_piece(self.selected_piece.position, pos)
-            self.selected_piece = None
-            self.legal_moves = []
-            return
-
-    # CASE 3: Clicked another own piece → switch selection
-        if clicked_piece and clicked_piece.colour == self.get_turn():
-            self.selected_piece = clicked_piece
-            self.legal_moves = clicked_piece.get_moves(self.board)
-            return
-
-    # CASE 4: Clicked invalid square → deselect
-        self.selected_piece = None
-        self.legal_moves = []
-
-
-    '''def handle_click(self, pos):
-        clicked_piece = self.board.get_piece(pos)
-        row = pos[1] // SQSIZE
-        col = pos[0] // SQSIZE
-        pos = (row, col)
-        if self.selected_piece is None:
-            if clicked_piece and clicked_piece.colour == self.get_turn():
-                self.selected_piece = clicked_piece
-                self.legal_moves = clicked_piece.get_moves(self.board)
-            return
-
-        if pos in self.legal_moves:
-            self.board.move_piece(self.selected_piece.position, pos)
-            self.selected_piece = None
-            self.legal_moves = []
-            return
-
-        if clicked_piece and clicked_piece.colour == self.get_turn():
-            self.selected_piece = clicked_piece
-            self.legal_moves = clicked_piece.get_moves(self.board)
-            return
-
-    # --------------------------------------------------
-    # CASE 3: Clicked another own piece → switch selection
-    # --------------------------------------------------
-        if clicked_piece and clicked_piece.colour == self.get_turn():
-            self.selected_piece = clicked_piece
-            self.legal_moves = clicked_piece.get_moves(self.board)
-            return
-
-    # --------------------------------------------------
-    # CASE 4: Clicked invalid square → deselect
-    # --------------------------------------------------
-        self.selected_piece = None
-        self.legal_moves = []
-
-
-    def queue_pre_move(self, to_pos):
+    '''def queue_pre_move(self, to_pos):
         pre_moves=[]
 
         selected_piece = self.get_selected_piece()  # Get the piece currently selected
