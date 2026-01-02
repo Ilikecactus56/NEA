@@ -97,8 +97,6 @@ class ChessAI:
     def find_best_move(self, board):
         best_move = None
         best_value = float("-inf")
-        print(board.grid)
-        print(board.get_all_legal_moves_ai(self.colour))
 
         all_moves = board.get_all_legal_moves_ai(self.colour)
 

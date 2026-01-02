@@ -43,12 +43,12 @@ class Main:
                             to_pos = self.selectedsquare[1]
                             print(f"Attempting to move from {from_pos} to {to_pos}")
                             print(self.game.get_legal_moves_for_selected())
-                            '''if self.game.move_selected_piece(to_pos):
+                            if self.game.move_selected_piece(to_pos):
                                 self.game.move_selected_piece(to_pos)
                                 print(f"Moved piece from {from_pos} to {to_pos}")
                             else:
                                 print(f"Invalid move from {from_pos} to {to_pos}")
-                            self.selectedsquare = []'''
+                            self.selectedsquare = []
 
                     if not self.game.board.in_bounds(pos):
                         continue
@@ -59,7 +59,6 @@ class Main:
         p.quit()
 
 
-'''if __name__ == "__main__":
+if __name__ == "__main__":
     Main().mainloop()
 
-'''

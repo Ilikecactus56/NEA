@@ -69,30 +69,25 @@ class Board:
         self.place_piece(King("black", (0, 4)))
 
     def move_piece(self, from_pos, to_pos):
-        print("Attempting move:", from_pos, "->", to_pos)
 
         piece = self.get_piece(from_pos)
         print("Piece:", piece)
         if piece is None:
-            print("FAIL: no piece")
             return False
 
         pseudo = piece.get_pseudo_moves(self)
         print("Pseudo moves:", pseudo)
 
         if to_pos not in pseudo:
-            print("FAIL: not in pseudo")
             return False
 
         board_copy = self.copy()
         board_copy._force_move(from_pos, to_pos)
 
-        print("Checking check...")
         if board_copy.is_in_check(piece.colour):
             print("FAIL: king in check")
             return False
 
-        print("FORCE MOVE")
         self._force_move(from_pos, to_pos)
         piece.has_moved = True
         return True

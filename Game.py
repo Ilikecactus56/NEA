@@ -36,6 +36,9 @@ class Game:
 
         return True
     
+    def switch_turn(self):
+        self.turn = "black" if self.turn == "white" else "white"
+    
     def reset_selection(self):
         self.selected_piece = None
 
