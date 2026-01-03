@@ -11,6 +11,7 @@ class Game:
         self.turn = "white" 
         self.selected_piece = None
         self.move_history = []
+        self.pending_promotion = None
 
     def select_piece(self, position):
         piece = self.board.get_piece(position)
@@ -86,10 +87,16 @@ class Game:
         if self.board.move_piece(from_pos, to_pos):
             self.move_history.append((from_pos, to_pos))
             self.selected_piece.has_moved = True
-            self.selected_piece = None
             self.turn = "black" if self.turn == "white" else "white"
 
+            if isinstance(self.board.get_piece(to_pos), Pawn):
+                row, col = to_pos
+                if (self.board.get_piece(to_pos).colour == "white" and row == 0) or (self.board.get_piece(to_pos).colour == "black" and row == 7):
+                    self.pending_promotion = to_pos
+                    self.selected_piece = None
+                    pass
 
+        self.selected_piece = None
         return True
     
     def switch_turn(self):
@@ -160,6 +167,30 @@ class Game:
     def print_board(self):
         for row in self.board.grid:
             print([str(piece) if piece else "." for piece in row])
+
+    def promote_pawn(self, position, new_piece_type):
+        pawn = self.board.get_piece(position)
+        if not pawn or pawn.__class__.__name__ != "Pawn":
+            return False
+        
+        row, col = position
+        if (pawn.colour == "white" and row != 0) or (pawn.colour == "black" and row != 7):
+            return False
+        
+        if new_piece_type == "Queen":
+            new_piece = Queen(pawn.colour, position)
+        elif new_piece_type == "Rook":
+            new_piece = Rook(pawn.colour, position)
+        elif new_piece_type == "Bishop":
+            new_piece = Bishop(pawn.colour, position)
+        elif new_piece_type == "Knight":
+            new_piece = Knight(pawn.colour, position)
+        else:
+            return False
+        
+        self.board.set_piece(position, new_piece)
+        self.pending_promotion = None
+        return True
 
     '''def queue_pre_move(self, to_pos):
         pre_moves=[]

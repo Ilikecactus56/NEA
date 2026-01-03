@@ -21,45 +21,28 @@ class Main:
             self.rendering.highlight_selection()
             p.display.flip()
             self.rendering.clock.tick(60)
+            mouse_x, mouse_y = p.mouse.get_pos()
+
+            col = mouse_x // SQSIZE
+            row = mouse_y // SQSIZE
+            pos = (row, col)
 
             for event in p.event.get():
                 if event.type == p.QUIT:
                     running = False
-                elif event.type == p.MOUSEBUTTONDOWN:
-                    mouse_x, mouse_y = p.mouse.get_pos()
-
-                    col = mouse_x // SQSIZE
-                    row = mouse_y // SQSIZE
-                    pos = (row, col)
+                elif event.type == p.MOUSEBUTTONDOWN and not self.game.pending_promotion:
                     self.game.handle_click(pos)
+                elif event.type == p.KEYDOWN and self.game.pending_promotion:
+                    if event.key == p.K_q:
+                        self.game.promote_pawn(self.game.pending_promotion, "Queen")
+                    elif event.key == p.K_r:
+                        self.game.promote_pawn(self.game.pending_promotion, "Rook")
+                    elif event.key == p.K_b:
+                        self.game.promote_pawn(self.game.pending_promotion, "Bishop")
+                    elif event.key == p.K_n:
+                        self.game.promote_pawn(self.game.pending_promotion, "Knight")
 
-                    '''self.selectedsquare.append(pos)
-                    print("selectedsquare:", self.selectedsquare)
-                    print(len(self.selectedsquare))
-
-                    if self.game.select_piece((row, col)):
-                        print(f"Selected piece at {pos}")
-                    else:
-                        print(f"No piece to select at {pos}")
-
-                    if len(self.selectedsquare) == 2:
-                            from_pos = self.selectedsquare[0]
-                            to_pos = self.selectedsquare[1]
-                            print(f"Attempting to move from {from_pos} to {to_pos}")
-                            print(self.game.get_legal_moves_for_selected())
-                            if self.game.move_selected_piece(to_pos):
-                                self.game.move_selected_piece(to_pos)
-                                print(f"Moved piece from {from_pos} to {to_pos}")
-                            else:
-                                print(f"Invalid move from {from_pos} to {to_pos}")
-                                self.selectedsquare = []
-                            self.selectedsquare = []
-
-                    if not self.game.board.in_bounds(pos):
-                        continue
-                    
-                    runs+=1
-                    print("Frame:", runs)'''
+                    self.game.pending_promotion = None
 
         p.quit()
 

@@ -64,9 +64,27 @@ class Rendering:
             )
             p.draw.circle(self.screen, (50, 50, 50), center, 10)
 
-    # Highlight selected piece and optionally its legal moves
-    # Main draw method
+    def draw_promotion_menu(self):
+        menu_width = SQSIZE * 4
+        menu_height = SQSIZE
+        menu_x = (WIDTH - menu_width) // 2
+        menu_y = (HEIGHT - menu_height) // 2
+        menu_rect = p.Rect(menu_x, menu_y, menu_width, menu_height)
+        p.draw.rect(self.screen, (200, 200, 200), menu_rect)
+        p.draw.rect(self.screen, (0, 0, 0), menu_rect, 2)
+
+        piece_types = ["Queen", "Rook", "Bishop", "Knight"]
+        for i, piece_type in enumerate(piece_types):
+            key = f"{self.game.board.get_piece(self.game.pending_promotion).colour}_{piece_type.lower()}"
+            image = self.piece_images.get(key)
+            if image:
+                x = menu_x + i * SQSIZE
+                y = menu_y
+                self.screen.blit(image, (x, y))
+
     def draw(self):
         self.draw_board()
         self.draw_pieces()
         p.display.update()
+        if self.game.pending_promotion:
+            self.draw_promotion_menu()

@@ -71,12 +71,10 @@ class Board:
     def move_piece(self, from_pos, to_pos):
 
         piece = self.get_piece(from_pos)
-        print("Piece:", piece)
         if piece is None:
             return False
 
         pseudo = piece.get_pseudo_moves(self)
-        print("Pseudo moves:", pseudo)
 
         if to_pos not in pseudo:
             return False
@@ -85,7 +83,6 @@ class Board:
         board_copy._force_move(from_pos, to_pos)
 
         if board_copy.is_in_check(piece.colour):
-            print("FAIL: king in check")
             return False
 
         self._force_move(from_pos, to_pos)
