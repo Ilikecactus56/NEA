@@ -75,7 +75,7 @@ class Main:
                     # CREATE AI HERE
                         if self.game.started and self.game.vs_ai and self.game.ai is None:
                             ai_colour = "black" if self.game.player_colour == "white" else "white"
-                            self.game.ai = ChessAI(ai_colour, depth=2)
+                            self.game.ai = ChessAI(ai_colour, depth=3)
                 elif event.type == p.KEYDOWN and self.game.pending_promotion:
                     if event.key == p.K_q:
                         self.game.promote_pawn(self.game.pending_promotion, "Queen")

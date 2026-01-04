@@ -34,6 +34,23 @@ class ChessAI:
                     else:
                         score -= value
 
+            '''if type(piece).__name__ in ("Knight", "Bishop"):
+                if piece.colour == self.colour:
+                    if (piece.colour == "white" and row < 7) or (piece.colour == "black" and row > 0):
+                        score += 0.3
+                else:
+                    if (piece.colour == "white" and row < 7) or (piece.colour == "black" and row > 0):
+                        score -= 0.3
+
+            # Discourage early queen movement
+            if type(piece).__name__ == "Queen":
+                if piece.colour == self.colour:
+                    if (piece.colour == "white" and row < 6) or (piece.colour == "black" and row > 1):
+                        score -= 0.5
+                else:
+                    if (piece.colour == "white" and row < 6) or (piece.colour == "black" and row > 1):
+                        score += 0.5'''
+
         return score
 
     def minimax(self, board, depth, alpha, beta, maximizing_player):
