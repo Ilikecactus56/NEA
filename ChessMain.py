@@ -1,3 +1,4 @@
+from ChessAI import ChessAI
 from Game import Game
 from ChessConstants import *
 from Rendering import Rendering
@@ -10,6 +11,32 @@ class Main:
         self.game = Game()
         self.rendering = Rendering(self.game)
         self.selectedsquare = []
+
+    def start_menu_click(self, position):
+        for key, rect in self.rendering.menu_buttons.items():
+            if rect.collidepoint(position):
+
+                if key == "human":
+                    self.game.vs_ai = False
+
+                elif key == "ai":
+                    self.game.vs_ai = True
+
+                elif key == "white":
+                    self.game.player_colour = "white"
+
+                elif key == "black":
+                    self.game.player_colour = "black"
+
+                elif key == "start":
+                    if self.game.player_colour is not None:
+                        if self.game.vs_ai:
+                            from ChessAI import ChessAI
+                            ai_colour = "black" if self.game.player_colour == "white" else "white"
+                            self.game.ai = ChessAI(self.game, ai_colour)
+
+                        self.game.started = True
+
 
     def mainloop(self):
         import pygame as p
@@ -27,11 +54,28 @@ class Main:
             row = mouse_y // SQSIZE
             pos = (row, col)
 
+
+
             for event in p.event.get():
+
+
                 if event.type == p.QUIT:
                     running = False
-                elif event.type == p.MOUSEBUTTONDOWN and not self.game.pending_promotion:
+                elif event.type == p.MOUSEBUTTONDOWN and not self.game.pending_promotion and self.game.started:
                     self.game.handle_click(pos)
+                elif event.type == p.MOUSEBUTTONDOWN and not self.game.started:
+                    result = self.rendering.start_menu_click(p.mouse.get_pos())
+                    if result:
+                        kind, value = result
+                        self.game.handle_start_menu_choice(kind, value)
+                        print("Menu choice:", kind, value)
+                        print("Player colour:", self.game.player_colour)
+                        print("Vs AI:", self.game.vs_ai)
+
+                    # CREATE AI HERE
+                        if self.game.started and self.game.vs_ai and self.game.ai is None:
+                            ai_colour = "black" if self.game.player_colour == "white" else "white"
+                            self.game.ai = ChessAI(ai_colour, depth=2)
                 elif event.type == p.KEYDOWN and self.game.pending_promotion:
                     if event.key == p.K_q:
                         self.game.promote_pawn(self.game.pending_promotion, "Queen")
@@ -43,6 +87,19 @@ class Main:
                         self.game.promote_pawn(self.game.pending_promotion, "Knight")
 
                     self.game.pending_promotion = None
+
+# ---------------- AI TURN ----------------
+            if self.game.started and self.game.vs_ai and self.game.ai:
+                if self.game.turn == self.game.ai.colour and not self.game.pending_promotion:
+
+                    move = self.game.ai.find_best_move(self.game.board)
+                    if move:
+                        from_pos, to_pos = move
+                        self.game.board.move_piece(from_pos, to_pos)
+
+                        # Switch turn back to player
+                        self.game.turn = self.game.player_colour
+
 
         p.quit()
 

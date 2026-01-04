@@ -15,6 +15,13 @@ class Rendering:
         # Initialize dictionary for images
         self.piece_images = {}
         self.load_images()
+
+
+        self.ai_button = p.Rect(300, 250, 200, 50)
+        self.human_button = p.Rect(300, 310, 200, 50)
+        self.white_button = p.Rect(300, 390, 200, 50)
+        self.black_button = p.Rect(300, 450, 200, 50)
+
     
     # Load all piece images from the 'images' folder
     def load_images(self):
@@ -82,9 +89,72 @@ class Rendering:
                 y = menu_y
                 self.screen.blit(image, (x, y))
 
+    def draw_start_menu(self):
+        self.screen.fill((30, 30, 30))
+
+        font = p.font.SysFont(None, 40)  # create font locally
+
+        def draw_button(rect, text):
+            p.draw.rect(self.screen, (200, 200, 200), rect)
+            p.draw.rect(self.screen, (0, 0, 0), rect, 2)
+
+            label = font.render(text, True, (0, 0, 0))
+            self.screen.blit(label, label.get_rect(center=rect.center))
+
+        draw_button(self.ai_button, "Play vs AI")
+        draw_button(self.human_button, "2 Players")
+        draw_button(self.white_button, "Play as White")
+        draw_button(self.black_button, "Play as Black") 
+
+
+    def start_menu_click(self, mouse_pos):
+        if self.ai_button.collidepoint(mouse_pos):
+            return ("opponent", "ai")
+        if self.human_button.collidepoint(mouse_pos):
+            return ("opponent", "human")
+        if self.white_button.collidepoint(mouse_pos):
+            return ("colour", "white")
+        if self.black_button.collidepoint(mouse_pos):
+            return ("colour", "black")
+        return None
+
+
+
+
+    '''def draw_start_menu(self):
+
+        self.screen.fill((30, 30, 30))
+        font = p.font.SysFont(None, 48)
+
+        options = [
+            ("Play vs Human", "human"),
+            ("Play vs AI", "ai"),
+            ("Play as White", "white"),
+            ("Play as Black", "black"),
+            ("Start Game", "start")
+        ]
+
+        self.menu_buttons = {}
+
+        start_y = 200
+        for i, (text, key) in enumerate(options):
+            rect = p.Rect(300, start_y + i*80, 300, 60)
+            p.draw.rect(self.screen, (200, 200, 200), rect)
+            p.draw.rect(self.screen, (0, 0, 0), rect, 2)
+
+            label = font.render(text, True, (0, 0, 0))
+            label_rect = label.get_rect(center=rect.center)
+            self.screen.blit(label, label_rect)
+
+            self.menu_buttons[key] = rect'''
+
+
     def draw(self):
-        self.draw_board()
-        self.draw_pieces()
+        if self.game.started:
+            self.draw_board()
+            self.draw_pieces()
         p.display.update()
         if self.game.pending_promotion:
             self.draw_promotion_menu()
+        if not self.game.started:
+            self.draw_start_menu()

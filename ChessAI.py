@@ -118,4 +118,3 @@ class ChessAI:
                     best_move = (from_pos, to_pos)
 
         return best_move
-

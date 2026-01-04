@@ -12,6 +12,10 @@ class Game:
         self.selected_piece = None
         self.move_history = []
         self.pending_promotion = None
+        self.vs_ai = None          # True or False
+        self.player_colour = None # "white" or "black"
+        self.started = False
+        self.ai = None  # Placeholder for AI player
 
     def select_piece(self, position):
         piece = self.board.get_piece(position)
@@ -191,6 +195,28 @@ class Game:
         self.board.set_piece(position, new_piece)
         self.pending_promotion = None
         return True
+    
+    def make_ai_move(self, from_pos, to_pos):
+        piece = self.board.get_piece(from_pos)
+        self.selected_piece = piece
+        self.move_selected_piece(to_pos)
+
+
+    def handle_start_menu_choice(self, choice_type, value):
+        if choice_type == "opponent":
+            self.vs_ai = (value == "ai")
+            if value == "human":
+                self.ai = None
+
+        elif choice_type == "colour":
+            self.player_colour = value
+            self.turn = "white"  # white always starts
+
+        if self.player_colour is not None:
+            self.started = True
+
+
+
 
     '''def queue_pre_move(self, to_pos):
         pre_moves=[]
