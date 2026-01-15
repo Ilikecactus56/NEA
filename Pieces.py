@@ -147,7 +147,7 @@ class Queen(SlidingPiece):
             board_copy._force_move(self.position, move)
 
             if not board_copy.is_in_check(self.colour):
-                legal_moves.append(move)
+                legal_moves.append(move)    
 
         return legal_moves
     

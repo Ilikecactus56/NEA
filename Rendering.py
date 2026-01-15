@@ -118,37 +118,6 @@ class Rendering:
             return ("colour", "black")
         return None
 
-
-
-
-    '''def draw_start_menu(self):
-
-        self.screen.fill((30, 30, 30))
-        font = p.font.SysFont(None, 48)
-
-        options = [
-            ("Play vs Human", "human"),
-            ("Play vs AI", "ai"),
-            ("Play as White", "white"),
-            ("Play as Black", "black"),
-            ("Start Game", "start")
-        ]
-
-        self.menu_buttons = {}
-
-        start_y = 200
-        for i, (text, key) in enumerate(options):
-            rect = p.Rect(300, start_y + i*80, 300, 60)
-            p.draw.rect(self.screen, (200, 200, 200), rect)
-            p.draw.rect(self.screen, (0, 0, 0), rect, 2)
-
-            label = font.render(text, True, (0, 0, 0))
-            label_rect = label.get_rect(center=rect.center)
-            self.screen.blit(label, label_rect)
-
-            self.menu_buttons[key] = rect'''
-
-
     def draw(self):
         if self.game.started:
             self.draw_board()
