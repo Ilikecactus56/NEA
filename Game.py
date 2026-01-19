@@ -124,29 +124,21 @@ class Game:
         return []
 
     def get_game_state(self):
-        if self.board.is_checkmate(self.turn):
+        if self.board.is_in_checkmate(self.turn):
             return "checkmate"
-        if self.board.is_stalemate(self.turn):
+        if self.board.is_in_stalemate(self.turn):
             return "stalemate"
         if self.board.is_in_check(self.turn):
             return "check"
         return "playing"
 
     def get_game_result(self):
-        if self.board.is_checkmate(self.turn):
+        if self.board.is_in_checkmate(self.turn):
             winner = "Black" if self.turn == "white" else "White"
             return f"{winner} wins by checkmate"
-        if self.board.is_stalemate(self.turn):
+        if self.board.is_in_stalemate(self.turn):
             return "Draw by stalemate"
         return None
-
-    def undo_move(self):
-        if not self.move_history:
-            return False
-        self.board = self.move_history.pop()
-        self.turn = "black" if self.turn == "white" else "white"
-        self.selected_piece = None
-        return True
 
     def get_all_legal_moves(self, colour):
         moves = {}
@@ -214,41 +206,3 @@ class Game:
 
         if self.player_colour is not None:
             self.started = True
-
-
-
-
-    '''def queue_pre_move(self, to_pos):
-        pre_moves=[]
-
-        selected_piece = self.get_selected_piece()  # Get the piece currently selected
-
-        if selected_piece and selected_piece.colour == self.turn:
-            from_pos = selected_piece.position   # Where the piece currently is
-            self.pre_moves.append((from_pos, to_pos))  # Add to queue
-            self.reset_selection()  # Clear selection after queuing
-            return pre_moves
-
-        return pre_moves
-    
-
-    def execute_pre_move(self):
-        if self.queue_pre_move is None:
-            return False  # No pre-moves queued
-        
-        pre_move = self.queue_pre_move
-
-        from_pos, to_pos = pre_move[0]
-        piece = self.board.get_piece(from_pos)  # Get the piece at from_pos
-
-        if self.board.is_in_check(self.turn):
-            self.queue_pre_move.clear()
-            return False
-
-        # Only execute if piece exists and belongs to current player
-        if piece and piece.colour == self.turn:
-            if self.board.move_piece(from_pos, to_pos):  # Move the piece
-                self.pre_moves.pop(0)  # Remove the executed move
-                self.turn = "black" if self.turn == "white" else "white"
-                return True
-        return False'''
