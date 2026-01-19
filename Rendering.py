@@ -8,7 +8,7 @@ class Rendering:
     def __init__(self, game):
         p.init()
         self.game = game
-        self.screen = p.display.set_mode((WIDTH, HEIGHT))
+        self.screen = p.display.set_mode((FULL_WIDTH, HEIGHT))
         p.display.set_caption("Chess")
         self.clock = p.time.Clock()
         
@@ -74,7 +74,7 @@ class Rendering:
     def draw_promotion_menu(self):
         menu_width = SQSIZE * 4
         menu_height = SQSIZE
-        menu_x = (WIDTH - menu_width) // 2
+        menu_x = (BOARD_WIDTH - menu_width) // 2
         menu_y = (HEIGHT - menu_height) // 2
         menu_rect = p.Rect(menu_x, menu_y, menu_width, menu_height)
         p.draw.rect(self.screen, (200, 200, 200), menu_rect)

@@ -9,10 +9,18 @@ class ChessAI:
         self.depth = depth
         self.game = Game()
         self.board = Board()
-        
+        self.last_evaluation = 0
     # ---------------------------------------------
     # Evaluation function (material-based)
     # ---------------------------------------------
+    def is_opening(self, board):
+        piece_count = 0
+        for row in board.grid:
+            for piece in row:
+                if piece:
+                    piece_count += 1
+        return piece_count > 24  # opening ≈ before many captures
+
     def evaluate_board(self, board):
         piece_values = {
             Pawn: 100,
@@ -33,23 +41,16 @@ class ChessAI:
                         score += value
                     else:
                         score -= value
+        # Opening central pawn bonus
+        if self.is_opening(board):
+            for r in range(8):
+                for c in range(8):
+                    piece = board.grid[r][c]
+                    if isinstance(piece, Pawn) and piece.colour == self.colour:
+                        if (r, c) in CENTER_SQUARES:
+                            score += 40  # small but meaningful bonus
 
-            '''if type(piece).__name__ in ("Knight", "Bishop"):
-                if piece.colour == self.colour:
-                    if (piece.colour == "white" and row < 7) or (piece.colour == "black" and row > 0):
-                        score += 0.3
-                else:
-                    if (piece.colour == "white" and row < 7) or (piece.colour == "black" and row > 0):
-                        score -= 0.3
 
-            # Discourage early queen movement
-            if type(piece).__name__ == "Queen":
-                if piece.colour == self.colour:
-                    if (piece.colour == "white" and row < 6) or (piece.colour == "black" and row > 1):
-                        score -= 0.5
-                else:
-                    if (piece.colour == "white" and row < 6) or (piece.colour == "black" and row > 1):
-                        score += 0.5'''
 
         return score
 
@@ -129,7 +130,7 @@ class ChessAI:
                     float("inf"),
                     False
                 )
-
+                
                 if value > best_value:
                     best_value = value
                     best_move = (from_pos, to_pos)
