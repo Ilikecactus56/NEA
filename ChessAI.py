@@ -10,6 +10,10 @@ class ChessAI:
         self.game = Game()
         self.board = Board()
         self.last_evaluation = 0
+        self.last_move_type = None
+        self.transposition_table = {}
+        self.top_moves = []
+        
     # ---------------------------------------------
     # Evaluation function (material-based)
     # ---------------------------------------------
@@ -20,6 +24,67 @@ class ChessAI:
                 if piece:
                     piece_count += 1
         return piece_count > 24  # opening ≈ before many captures
+
+    def classify_move(self, board_before, from_pos, to_pos):
+        piece = board_before.get_piece(from_pos)
+        target = board_before.get_piece(to_pos)
+
+        # Capture
+        if target is not None:
+            return "Capture"
+
+        # Check
+        board_copy = board_before.copy()
+        board_copy._force_move(from_pos, to_pos)
+        opponent = "black" if self.colour == "white" else "white"
+        if board_copy.is_in_check(opponent):
+            return "Check"
+
+        # Development (minor pieces leaving back rank)
+        if piece.__class__.__name__ in ("Knight", "Bishop"):
+            start_rank = 7 if self.colour == "white" else 0
+            if from_pos[0] == start_rank:
+                return "Development"
+
+        # Defensive (move blocks attack or removes threat)
+        if board_before.is_square_attacked(from_pos, self.colour):
+            return "Defensive"
+
+        return "Neutral"
+    def analyse_position(self, board):
+        """
+        Updates evaluation + top moves WITHOUT making a move
+        """
+        self.top_moves = []
+        self.last_evaluation = 0
+
+        best_value = float("-inf")
+
+        all_moves = board.get_all_legal_moves_ai(self.colour)
+
+        for from_pos, move_list in all_moves.items():
+            for to_pos in move_list:
+                new_board = board.copy()
+                new_board._force_move(from_pos, to_pos)
+
+                value = self.minimax(
+                    new_board,
+                    self.depth - 1,
+                    float("-inf"),
+                    float("inf"),
+                    False
+                )
+
+                self.top_moves.append(((from_pos, to_pos), value))
+
+                if value > best_value:
+                    best_value = value
+
+        self.top_moves.sort(key=lambda x: x[1], reverse=True)
+        self.top_moves = self.top_moves[:5]
+        self.last_evaluation = best_value
+
+
 
     def evaluate_board(self, board):
         piece_values = {
@@ -130,9 +195,10 @@ class ChessAI:
                     float("inf"),
                     False
                 )
-                
+                board_before = board.copy()
                 if value > best_value:
                     best_value = value
                     best_move = (from_pos, to_pos)
+                    self.last_move_type = self.classify_move(board_before, from_pos, to_pos)
 
         return best_move

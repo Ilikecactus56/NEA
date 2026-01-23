@@ -22,6 +22,9 @@ class Main:
         running = True
         runs = 0
         while running:
+            if self.game.started and self.game.vs_ai and self.game.ai:
+                self.game.ai.analyse_position(self.game.board)
+
             self.rendering.draw()
             self.rendering.highlight_selection()
             if self.game.started and self.game.vs_ai and self.game.ai:
@@ -59,20 +62,23 @@ class Main:
                         if self.game.vs_ai and self.game.ai is None and self.game.player_colour is not None:
                             ai_colour = "black" if self.game.player_colour == "white" else "white"
                             self.game.ai = ChessAI(ai_colour, depth=2)
-                            self.analysis_window = AnalysisWindow(self.game.ai)
+                            self.analysis_window = AnalysisWindow(self.game.ai,self.game)
                             self.game.started = True
 
-                elif event.type == p.KEYDOWN and self.game.pending_promotion:
-                    if event.key == p.K_q:
-                        self.game.promote_pawn(self.game.pending_promotion, "Queen")
-                    elif event.key == p.K_r:
-                        self.game.promote_pawn(self.game.pending_promotion, "Rook")
-                    elif event.key == p.K_b:
-                        self.game.promote_pawn(self.game.pending_promotion, "Bishop")
-                    elif event.key == p.K_n:
-                        self.game.promote_pawn(self.game.pending_promotion, "Knight")
-
-                    self.game.pending_promotion = None
+                elif event.type == p.KEYDOWN:
+                    if self.game.pending_promotion:
+                        if event.key == p.K_q:
+                            self.game.promote_pawn(self.game.pending_promotion, "Queen")
+                        elif event.key == p.K_r:
+                            self.game.promote_pawn(self.game.pending_promotion, "Rook")
+                        elif event.key == p.K_b:
+                            self.game.promote_pawn(self.game.pending_promotion, "Bishop")
+                        elif event.key == p.K_n:
+                            self.game.promote_pawn(self.game.pending_promotion, "Knight")
+                    elif event.key == p.K_z:
+                        self.game.undo_move()
+                    elif event.key == p.K_y:
+                        self.game.redo_move()
 
 
             if self.game.started and self.game.vs_ai and self.game.ai:

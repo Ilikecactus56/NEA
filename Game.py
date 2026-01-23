@@ -11,6 +11,8 @@ class Game:
         self.turn = "white" 
         self.selected_piece = None
         self.move_history = []
+        self.redo_stack = []
+        self.undo_stack = []
         self.pending_promotion = None
         self.vs_ai = None          # True or False
         self.player_colour = None # "white" or "black"
@@ -79,6 +81,14 @@ class Game:
 
         # CASE 5: Invalid click → clear selection
         self.selected_piece = None
+    def save_state(self):
+        self.undo_stack.append({
+            "board": self.board.copy(),
+            "turn": self.turn,
+            "pending_promotion": self.pending_promotion
+        })
+        self.redo_stack.clear()  # redo invalid after new move
+
     
     def move_selected_piece(self, to_pos):
         if self.selected_piece is None:
@@ -87,6 +97,8 @@ class Game:
         from_pos = self.selected_piece.position
         if to_pos not in self.selected_piece.get_moves(self.board):
             return False
+        
+        self.save_state()
         
         if self.board.move_piece(from_pos, to_pos):
             self.move_history.append((from_pos, to_pos))
@@ -163,6 +175,44 @@ class Game:
     def print_board(self):
         for row in self.board.grid:
             print([str(piece) if piece else "." for piece in row])
+
+    def undo_move(self):
+        if not self.undo_stack:
+            print("Nothing to undo")
+            return
+
+        # Save current state for redo
+        self.redo_stack.append({
+            "board": self.board.copy(),
+            "turn": self.turn,
+            "pending_promotion": self.pending_promotion
+        })
+
+        last_state = self.undo_stack.pop()
+        self.board = last_state["board"]
+        self.turn = last_state["turn"]
+        self.pending_promotion = last_state["pending_promotion"]
+        self.selected_piece = None
+
+    def redo_move(self):
+        if not self.redo_stack:
+            print("Nothing to redo")
+            return
+
+        # Save current state for undo
+        self.undo_stack.append({
+            "board": self.board.copy(),
+            "turn": self.turn,
+            "pending_promotion": self.pending_promotion
+        })
+
+        next_state = self.redo_stack.pop()
+        self.board = next_state["board"]
+        self.turn = next_state["turn"]
+        self.pending_promotion = next_state["pending_promotion"]
+        self.selected_piece = None
+
+
 
     def promote_pawn(self, position, new_piece_type):
         pawn = self.board.get_piece(position)

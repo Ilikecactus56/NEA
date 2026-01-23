@@ -1,13 +1,14 @@
 from Board import Board
+from ChessAI import ChessAI
 from Pieces import Pawn, Rook, Knight, Bishop, Queen, King
+from Game import Game
 
 board = Board()
-board.grid = [[None]*8 for _ in range(8)]
+board.grid = [[None for _ in range(8)] for _ in range(8)]
 
-king = King("white", (4, 4))
-rook = Rook("black", (4, 7))
+board.place_piece(King("white", (7, 4)))
+board.place_piece(King("black", (0, 4)))
 
-board.set_piece((4, 4), king)
-board.set_piece((4, 7), rook)
+ai = ChessAI("white")
 
-print(king.get_moves(board))
+print("Opening detected (endgame):", ai.is_opening(board))
