@@ -22,8 +22,6 @@ class Main:
         running = True
         runs = 0
         while running:
-            if self.game.started and self.game.vs_ai and self.game.ai:
-                self.game.ai.analyse_position(self.game.board)
 
             self.rendering.draw()
             self.rendering.highlight_selection()
@@ -88,6 +86,7 @@ class Main:
                     if move:
                         from_pos, to_pos = move
                         self.game.board.move_piece(from_pos, to_pos)
+                        self.game.ai.last_evaluation = self.game.ai.evaluate_material(self.game.board)
 
                             # Switch turn back to player
                         self.game.turn = self.game.player_colour
