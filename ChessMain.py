@@ -25,7 +25,7 @@ class Main:
 
             self.rendering.draw()
             self.rendering.highlight_selection()
-            if self.game.started and self.game.vs_ai and self.game.ai:
+            if self.game.started:
                 self.analysis_window.draw()
             p.display.flip()
             self.rendering.clock.tick(60)
@@ -49,19 +49,32 @@ class Main:
                     self.game.handle_click(pos)
                 elif event.type == p.MOUSEBUTTONDOWN and not self.game.started:
                     result = self.rendering.start_menu_click(p.mouse.get_pos())
-                    if result:
-                        kind, value = result
-                        self.game.handle_start_menu_choice(kind, value)
-                        print("Menu choice:", kind, value)
-                        print("Player colour:", self.game.player_colour)
-                        print("Vs AI:", self.game.vs_ai)
+                    if result == "white_human":
+                            self.game.ai_players["white"] = False
 
-                    # CREATE AI HERE
-                        if self.game.vs_ai and self.game.ai is None and self.game.player_colour is not None:
-                            ai_colour = "black" if self.game.player_colour == "white" else "white"
-                            self.game.ai = ChessAI(ai_colour, depth=2)
-                            self.analysis_window = AnalysisWindow(self.game.ai,self.game)
-                            self.game.started = True
+                    elif result == "white_ai":
+                        self.game.ai_players["white"] = True
+
+                    elif result == "black_human":
+                        self.game.ai_players["black"] = False
+
+                    elif result == "black_ai":
+                        self.game.ai_players["black"] = True
+
+                    elif result == "start":
+                        # Create AI instances only where needed
+                        for colour in ("white", "black"):
+                            if self.game.ai_players[colour]:
+                                self.game.ai_instances[colour] = ChessAI(colour, depth=2)
+
+                        # Use whichever AI exists for analysis window
+                        active_ai = (
+                            self.game.ai_instances["white"]
+                            or self.game.ai_instances["black"]
+                        )
+
+                        self.analysis_window = AnalysisWindow(active_ai, self.game)
+                        self.game.started = True
 
                 elif event.type == p.KEYDOWN:
                     if self.game.pending_promotion:
@@ -77,19 +90,31 @@ class Main:
                         self.game.undo_move()
                     elif event.key == p.K_y:
                         self.game.redo_move()
+                    elif event.key == p.K_w:
+                        self.game.toggle_ai("white")
+                    elif event.key == p.K_b:
+                        self.game.toggle_ai("black")
 
 
-            if self.game.started and self.game.vs_ai and self.game.ai:
-                if self.game.turn == self.game.ai.colour and not self.game.pending_promotion:
 
-                    move = self.game.ai.find_best_move(self.game.board)
+            if self.game.started and not self.game.pending_promotion:
+                current = self.game.turn
+
+                if self.game.ai_players[current]:
+                    ai = self.game.ai_instances[current]
+
+                    move = ai.find_best_move(self.game.board)
                     if move:
                         from_pos, to_pos = move
                         self.game.board.move_piece(from_pos, to_pos)
-                        self.game.ai.last_evaluation = self.game.ai.evaluate_material(self.game.board)
 
-                            # Switch turn back to player
-                        self.game.turn = self.game.player_colour
+                        # Update evaluation AFTER move
+                        ai.last_evaluation = ai.evaluate_material(self.game.board)
+
+                        # Switch turn
+                        self.game.turn = "black" if current == "white" else "white"
+
+
 
 
         p.quit()

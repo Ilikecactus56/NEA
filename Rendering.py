@@ -11,16 +11,15 @@ class Rendering:
         self.screen = p.display.set_mode((FULL_WIDTH, HEIGHT))
         p.display.set_caption("Chess")
         self.clock = p.time.Clock()
-        
         # Initialize dictionary for images
         self.piece_images = {}
         self.load_images()
 
-
-        self.ai_button = p.Rect(300, 250, 200, 50)
-        self.human_button = p.Rect(300, 310, 200, 50)
-        self.white_button = p.Rect(300, 390, 200, 50)
-        self.black_button = p.Rect(300, 450, 200, 50)
+        self.white_human_button = p.Rect(200, 150, 240, 50)
+        self.white_ai_button    = p.Rect(460, 150, 240, 50)
+        self.black_human_button = p.Rect(200, 230, 240, 50)
+        self.black_ai_button    = p.Rect(460, 230, 240, 50)
+        self.start_button       = p.Rect(330, 330, 240, 60)
 
     
     # Load all piece images from the 'images' folder
@@ -28,7 +27,7 @@ class Rendering:
         folder = "images"  # Make sure your piece images are here
         for filename in os.listdir(folder):
             if filename.endswith(".png"):
-                key = filename.replace(".png", "").lower()  # e.g., "white_pawn"
+                key = filename.replace(".png", "").lower() 
                 path = os.path.join(folder, filename)
                 image = p.image.load(path)
                 image = p.transform.scale(image, (SQSIZE, SQSIZE))
@@ -92,31 +91,41 @@ class Rendering:
     def draw_start_menu(self):
         self.screen.fill((30, 30, 30))
 
-        font = p.font.SysFont(None, 40)  # create font locally
+        title_font = p.font.SysFont(None, 52)
+        font = p.font.SysFont(None, 36)
 
         def draw_button(rect, text):
             p.draw.rect(self.screen, (200, 200, 200), rect)
             p.draw.rect(self.screen, (0, 0, 0), rect, 2)
-
             label = font.render(text, True, (0, 0, 0))
             self.screen.blit(label, label.get_rect(center=rect.center))
 
-        draw_button(self.ai_button, "Play vs AI")
-        draw_button(self.human_button, "2 Players")
-        draw_button(self.white_button, "Play as White")
-        draw_button(self.black_button, "Play as Black") 
+        title = title_font.render("Chess Setup", True, (220, 220, 220))
+        self.screen.blit(title, title.get_rect(center=(FULL_WIDTH // 2, 80)))
+
+        draw_button(self.white_human_button, "White: Human")
+        draw_button(self.white_ai_button, "White: AI")
+
+        draw_button(self.black_human_button, "Black: Human")
+        draw_button(self.black_ai_button, "Black: AI")
+
+        draw_button(self.start_button, "Start Game")
 
 
     def start_menu_click(self, mouse_pos):
-        if self.ai_button.collidepoint(mouse_pos):
-            return ("opponent", "ai")
-        if self.human_button.collidepoint(mouse_pos):
-            return ("opponent", "human")
-        if self.white_button.collidepoint(mouse_pos):
-            return ("colour", "white")
-        if self.black_button.collidepoint(mouse_pos):
-            return ("colour", "black")
+        if self.white_human_button.collidepoint(mouse_pos):
+            return "white_human"
+        if self.white_ai_button.collidepoint(mouse_pos):
+            return "white_ai"
+        if self.black_human_button.collidepoint(mouse_pos):
+            return "black_human"
+        if self.black_ai_button.collidepoint(mouse_pos):
+            return "black_ai"
+        if self.start_button.collidepoint(mouse_pos):
+            return "start"
+
         return None
+
 
     def draw(self):
         if self.game.started:

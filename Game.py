@@ -17,7 +17,10 @@ class Game:
         self.vs_ai = None          # True or False
         self.player_colour = None # "white" or "black"
         self.started = False
-        self.ai = None  # Placeholder for AI player
+        self.ai_players = {"white": False, "black": False}
+        self.ai_instances = {"white": None, "black": None}
+
+
 
     def select_piece(self, position):
         piece = self.board.get_piece(position)
@@ -81,6 +84,7 @@ class Game:
 
         # CASE 5: Invalid click → clear selection
         self.selected_piece = None
+
     def save_state(self):
         self.undo_stack.append({
             "board": self.board.copy(),
@@ -256,3 +260,11 @@ class Game:
 
         if self.player_colour is not None:
             self.started = True
+
+    def toggle_ai(self, colour):
+        self.ai_players[colour] = not self.ai_players[colour]
+
+        if self.ai_players[colour] and self.ai_instances[colour] is None:
+            from ChessAI import ChessAI
+            self.ai_instances[colour] = ChessAI(colour, depth=3)
+
