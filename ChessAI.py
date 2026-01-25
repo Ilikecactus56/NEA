@@ -13,6 +13,11 @@ class ChessAI:
         self.last_move_type = None
         self.transposition_table = {}
         self.top_moves = []
+        self.node_count = 0
+        self.node_limit = 8000   # SAFE for pygame
+        self.position_history = {}
+
+
         
     # ---------------------------------------------
     # Evaluation function (material-based)
@@ -78,91 +83,31 @@ class ChessAI:
 
         return score
     
-    def order_moves(self, board, moves, colour):
-        ordered = []
+        piece = board_before.get_piece(from_pos)
+        target = board_before.get_piece(to_pos)
 
-        for from_pos, to_pos in moves:
-            piece = board.get_piece(from_pos)
-            target = board.get_piece(to_pos)
+        # Capture
+        if target is not None:
+            return "Capture"
 
-            score = 0
+        # Check
+        board_copy = board_before.copy()
+        board_copy._force_move(from_pos, to_pos)
+        opponent = "black" if self.colour == "white" else "white"
+        if board_copy.is_in_check(opponent):
+            return "Check"
 
-            # Captures first (MVV-LVA lite)
-            if target:
-                score += 10 * self.evaluate_piece(target) - self.evaluate_piece(piece)
+        # Development (minor pieces leaving back rank)
+        if piece.__class__.__name__ in ("Knight", "Bishop"):
+            start_rank = 7 if self.colour == "white" else 0
+            if from_pos[0] == start_rank:
+                return "Development"
 
-            # Checks
-            test_board = board.copy()
-            test_board._force_move(from_pos, to_pos)
-            opponent = "black" if colour == "white" else "white"
-            if test_board.is_in_check(opponent):
-                score += 50
+        # Defensive (move blocks attack or removes threat)
+        if board_before.is_square_attacked(from_pos, self.colour):
+            return "Defensive"
 
-            ordered.append(((from_pos, to_pos), score))
-
-        ordered.sort(key=lambda x: x[1], reverse=True)
-        return [m[0] for m in ordered]
-    
-    def evaluate_piece(self, piece):
-        values = {
-            Pawn: 1,
-            Knight: 3,
-            Bishop: 3,
-            Rook: 5,
-            Queen: 9,
-            King: 100
-        }
-        return values.get(type(piece), 0)
-    def board_hash(self, board):
-        """
-        Creates an immutable representation of the board
-        suitable for use as a dictionary key.
-        """
-        state = []
-
-        for row in board.grid:
-            for piece in row:
-                if piece is None:
-                    state.append(None)
-                else:
-                    state.append((
-                        piece.__class__.__name__,
-                        piece.colour,
-                        piece.position
-                    ))
-
-        return tuple(state)
-
-
-    def quiescence(self, board, alpha, beta, qdepth=2):
-        stand_pat = self.evaluate_board(board)
-
-        if qdepth == 0:
-            return stand_pat
-
-        if stand_pat >= beta:
-            return beta
-        if alpha < stand_pat:
-            alpha = stand_pat
-
-        for from_pos, to_pos in board.get_all_legal_moves(self.colour):
-            if board.get_piece(to_pos):
-                new_board = board.copy()
-                new_board._force_move(from_pos, to_pos)
-
-                score = -self.quiescence(
-                    new_board, -beta, -alpha, qdepth - 1
-                )
-
-                if score >= beta:
-                    return beta
-                if score > alpha:
-                    alpha = score
-
-        return alpha
-
-
-
+        return "Neutral"
     def analyse_position(self, board):
         """
         Updates evaluation + top moves WITHOUT making a move
@@ -195,19 +140,6 @@ class ChessAI:
         self.top_moves.sort(key=lambda x: x[1], reverse=True)
         self.top_moves = self.top_moves[:5]
         self.last_evaluation = best_value
-    
-    def game_phase(self, board):
-        material = sum(
-            1 for row in board.grid for p in row
-            if p and not isinstance(p, Pawn)
-        )
-
-        if material > 10:
-            return "opening"
-        elif material > 4:
-            return "middlegame"
-        else:
-            return "endgame"
 
 
 
@@ -232,31 +164,23 @@ class ChessAI:
                     else:
                         score -= value
         # Opening central pawn bonus
-        if self.game_phase(board) == "opening":
+        if self.is_opening(board):
             for r in range(8):
                 for c in range(8):
                     piece = board.grid[r][c]
                     if isinstance(piece, Pawn) and piece.colour == self.colour:
                         if (r, c) in CENTER_SQUARES:
                             score += 40  # small but meaningful bonus
-                    if isinstance(piece, King) and piece.colour == self.colour:
-                        if piece.has_moved:
-                            score -=120
+
 
 
         return score
 
     def minimax(self, board, depth, alpha, beta, maximizing_player):
-        board_key = (self.board_hash(board), depth, maximizing_player)
-
-        if board_key in self.transposition_table:
-            return self.transposition_table[board_key]
-
 
         # Terminal condition
         if depth == 0:
-            return self.quiescence(board, alpha, beta, qdepth=2)
-
+            return self.evaluate_board(board)
 
         opponent = "black" if self.colour == "white" else "white"
         # Checkmate & stalemate
@@ -270,15 +194,8 @@ class ChessAI:
 
         if maximizing_player == True:
             max_eval = float("-inf")
-            
-            moves = self.order_moves(
-                board,
-                board.get_all_legal_moves(self.colour),
-                self.colour
-            )
 
-
-            for from_pos, to_pos in moves:
+            for from_pos, to_pos in board.get_all_legal_moves(self.colour):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
@@ -291,20 +208,13 @@ class ChessAI:
 
                 if beta <= alpha:
                     break
-            self.transposition_table[board_key] = max_eval
+
             return max_eval
 
         else:
             min_eval = float("inf")
 
-            moves = self.order_moves(
-                board,
-                board.get_all_legal_moves(opponent),
-                self.colour
-            )
-
-
-            for from_pos, to_pos in moves:
+            for from_pos, to_pos in board.get_all_legal_moves(opponent):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
@@ -317,7 +227,7 @@ class ChessAI:
 
                 if beta <= alpha:
                     break
-            self.transposition_table[board_key] = min_eval
+
             return min_eval
 
 
