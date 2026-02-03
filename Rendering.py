@@ -125,12 +125,46 @@ class Rendering:
             return "start"
 
         return None
+    
+    def draw_game_over(self):
+        state = self.game.get_game_state()
+
+        if state not in ("checkmate", "stalemate"):
+            return
+
+        # Dark overlay
+        overlay = p.Surface((BOARD_WIDTH, HEIGHT))
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        font_big = p.font.SysFont(None, 72)
+        font_small = p.font.SysFont(None, 36)
+
+        if state == "checkmate":
+            winner = "Black" if self.game.turn == "white" else "White"
+            text = f"CHECKMATE"
+            subtext = f"{winner} wins"
+        else:
+            text = "STALEMATE"
+            subtext = "Draw"
+
+        title_surf = font_big.render(text, True, (255, 255, 255))
+        sub_surf = font_small.render(subtext, True, (200, 200, 200))
+
+        title_rect = title_surf.get_rect(center=(BOARD_WIDTH // 2, HEIGHT // 2 - 20))
+        sub_rect = sub_surf.get_rect(center=(BOARD_WIDTH // 2, HEIGHT // 2 + 30))
+
+        self.screen.blit(title_surf, title_rect)
+        self.screen.blit(sub_surf, sub_rect)
+
 
 
     def draw(self):
         if self.game.started:
             self.draw_board()
             self.draw_pieces()
+            self.draw_game_over()
         p.display.update()
         if self.game.pending_promotion:
             self.draw_promotion_menu()

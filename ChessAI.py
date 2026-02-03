@@ -56,6 +56,26 @@ class ChessAI:
             return "Defensive"
 
         return "Neutral"
+
+    def board_hash(self, board):
+        """
+        Creates an immutable representation of the board
+        suitable for use as a dictionary key.
+        """
+        state = []
+
+        for row in board.grid:
+            for piece in row:
+                if piece is None:
+                    state.append(None)
+                else:
+                    state.append((
+                        piece.__class__.__name__,
+                        piece.colour,
+                        piece.position
+                    ))
+
+        return tuple(state)
     
     def evaluate_material(self, board):
         """
@@ -141,6 +161,69 @@ class ChessAI:
         self.top_moves = self.top_moves[:5]
         self.last_evaluation = best_value
 
+    def order_moves(self, board, moves, colour):
+            ordered = []
+
+            for from_pos, to_pos in moves:
+                piece = board.get_piece(from_pos)
+                target = board.get_piece(to_pos)
+
+                score = 0
+
+                # Captures first (MVV-LVA lite)
+                if target:
+                    score += 10 * self.evaluate_piece(target) - self.evaluate_piece(piece)
+
+                # Checks
+                test_board = board.copy()
+                test_board._force_move(from_pos, to_pos)
+                opponent = "black" if colour == "white" else "white"
+                if test_board.is_in_check(opponent):
+                    score += 50
+
+                ordered.append(((from_pos, to_pos), score))
+
+            ordered.sort(key=lambda x: x[1], reverse=True)
+            return [m[0] for m in ordered]
+
+    def apply_promotion_if_needed(self, board, to_pos):
+        piece = board.get_piece(to_pos)
+
+        if not isinstance(piece, Pawn):
+            return
+
+        row, col = to_pos
+        if (piece.colour == "white" and row == 0) or \
+        (piece.colour == "black" and row == 7):
+            board.set_piece(to_pos, Queen(piece.colour, to_pos))
+
+
+    def quiescence(self, board, alpha, beta, qdepth=2):
+        stand_pat = self.evaluate_board(board)
+
+        if qdepth == 0:
+            return stand_pat
+
+        if stand_pat >= beta:
+            return beta
+        if alpha < stand_pat:
+            alpha = stand_pat
+
+        for from_pos, to_pos in board.get_all_legal_moves(self.colour):
+            if board.get_piece(to_pos):
+                new_board = board.copy()
+                new_board._force_move(from_pos, to_pos)
+
+                score = -self.quiescence(
+                    new_board, -beta, -alpha, qdepth - 1
+                )
+
+                if score >= beta:
+                    return beta
+                if score > alpha:
+                    alpha = score
+
+        return alpha
 
 
     def evaluate_board(self, board):
@@ -171,6 +254,12 @@ class ChessAI:
                     if isinstance(piece, Pawn) and piece.colour == self.colour:
                         if (r, c) in CENTER_SQUARES:
                             score += 40  # small but meaningful bonus
+                    if isinstance(piece, Pawn):
+                        r, _ = piece.position
+                        if piece.colour == self.colour:
+                            score += (7 - r) * 5
+                        else:
+                            score -= r * 5
 
 
 
@@ -199,6 +288,8 @@ class ChessAI:
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
+                self.apply_promotion_if_needed(new_board, to_pos)
+
                 eval_score = self.minimax(
                     new_board, depth - 1, alpha, beta, False
                 )
@@ -217,6 +308,8 @@ class ChessAI:
             for from_pos, to_pos in board.get_all_legal_moves(opponent):
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
+
+                self.apply_promotion_if_needed(new_board, to_pos)
 
                 eval_score = self.minimax(
                     new_board, depth - 1, alpha, beta, True
@@ -245,6 +338,8 @@ class ChessAI:
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
 
+                self.apply_promotion_if_needed(new_board, to_pos)
+
                 value = self.minimax(
                     new_board,
                     self.depth - 1,
@@ -258,4 +353,7 @@ class ChessAI:
                     best_move = (from_pos, to_pos)
                     self.last_move_type = self.classify_move(board_before, from_pos, to_pos)
 
+        if best_move is not None:
+            self.last_evaluation = best_value
+        
         return best_move

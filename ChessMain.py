@@ -111,6 +111,9 @@ class Main:
                         # Update evaluation AFTER move
                         ai.last_evaluation = ai.evaluate_material(self.game.board)
 
+                        if self.game.get_game_state() in ("checkmate", "stalemate"):
+                            self.rendering.draw_game_over()
+
                         # Switch turn
                         self.game.turn = "black" if current == "white" else "white"
 
