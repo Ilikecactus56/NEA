@@ -12,7 +12,6 @@ class ChessAI:
         self.last_evaluation = 0
         self.last_move_type = None
         self.transposition_table = {}
-        self.top_moves = []
         self.node_count = 0
         self.node_limit = 8000   # SAFE for pygame
         self.position_history = {}
