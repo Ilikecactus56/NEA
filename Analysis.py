@@ -114,6 +114,22 @@ class AnalysisWindow:
         eval_text = f"Evaluation: {eval_val:.2f}" if eval_val is not None else "Evaluation: --"
         screen.blit(self.font_text.render(eval_text, True, (220,220,220)), (self.x+20, y))
         
+        y += 28
+
+        #-----------------------------
+        # AI move time
+        #-----------------------------
+        ai_time = getattr(self.ai, "last_move_time", None)
+        if ai_time is not None:
+            time_text = f"AI Move Time: {ai_time:.2f}s"
+        else:
+            time_text = "AI Move Time: --"
+
+        screen.blit(
+            self.font_text.render(time_text, True, (220,220,220)),
+            (self.x + 20, y)
+        )
+
         # -----------------------------
         # Move legality explanation
         # -----------------------------
@@ -123,6 +139,28 @@ class AnalysisWindow:
         screen.blit(self.font_small.render(
             self.explain_move_legality(), True, (200,200,200)), (self.x+30, y))
         y += 35
+
+        # -----------------------------
+        # Move History
+        # -----------------------------
+        screen.blit(
+            self.font_text.render("Move History:", True, (230,230,230)),
+            (self.x + 20, y)
+        )
+        y += 25
+
+        history = self.game.move_history[-5:]  # last 5 moves only
+
+        for i, move in enumerate(history):
+            move_number = len(self.game.move_history) - len(history) + i + 1
+            text = f"{move_number}. {move}"
+            screen.blit(
+                self.font_small.render(text, True, (200,200,200)),
+                (self.x + 30, y)
+            )
+            y += 18
+        
+        y+=35
 
         # -----------------------------
         # Threat indicators

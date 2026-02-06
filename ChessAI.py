@@ -1,3 +1,4 @@
+from time import time
 from Game import Game
 from Board import Board
 from ChessConstants import *
@@ -15,6 +16,7 @@ class ChessAI:
         self.node_count = 0
         self.node_limit = 8000   # SAFE for pygame
         self.position_history = {}
+        self.last_move_time = 0.0
 
 
         
@@ -156,8 +158,6 @@ class ChessAI:
                 if value > best_value:
                     best_value = value
 
-        self.top_moves.sort(key=lambda x: x[1], reverse=True)
-        self.top_moves = self.top_moves[:5]
         self.last_evaluation = best_value
 
     def order_moves(self, board, moves, colour):
@@ -223,6 +223,17 @@ class ChessAI:
                     alpha = score
 
         return alpha
+    
+    def evaluate_piece(self, piece):
+        values = {
+            Pawn: 1,
+            Knight: 3,
+            Bishop: 3,
+            Rook: 5,
+            Queen: 9,
+            King: 100
+        }
+        return values.get(type(piece), 0)
 
 
     def evaluate_board(self, board):
@@ -265,10 +276,16 @@ class ChessAI:
         return score
 
     def minimax(self, board, depth, alpha, beta, maximizing_player):
+        board_key = (self.board_hash(board), depth, maximizing_player)
+
+        if board_key in self.transposition_table:
+            return self.transposition_table[board_key]
+
 
         # Terminal condition
         if depth == 0:
-            return self.evaluate_board(board)
+            return self.quiescence(board, alpha, beta, qdepth=2)
+
 
         opponent = "black" if self.colour == "white" else "white"
         # Checkmate & stalemate
@@ -282,12 +299,17 @@ class ChessAI:
 
         if maximizing_player == True:
             max_eval = float("-inf")
+            
+            moves = self.order_moves(
+                board,
+                board.get_all_legal_moves(self.colour),
+                self.colour
+            )
 
-            for from_pos, to_pos in board.get_all_legal_moves(self.colour):
+
+            for from_pos, to_pos in moves:
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
-
-                self.apply_promotion_if_needed(new_board, to_pos)
 
                 eval_score = self.minimax(
                     new_board, depth - 1, alpha, beta, False
@@ -298,17 +320,22 @@ class ChessAI:
 
                 if beta <= alpha:
                     break
-
+            self.transposition_table[board_key] = max_eval
             return max_eval
 
         else:
             min_eval = float("inf")
 
-            for from_pos, to_pos in board.get_all_legal_moves(opponent):
+            moves = self.order_moves(
+                board,
+                board.get_all_legal_moves(opponent),
+                self.colour
+            )
+
+
+            for from_pos, to_pos in moves:
                 new_board = board.copy()
                 new_board._force_move(from_pos, to_pos)
-
-                self.apply_promotion_if_needed(new_board, to_pos)
 
                 eval_score = self.minimax(
                     new_board, depth - 1, alpha, beta, True
@@ -319,14 +346,16 @@ class ChessAI:
 
                 if beta <= alpha:
                     break
-
+            self.transposition_table[board_key] = min_eval
             return min_eval
-
 
     # ---------------------------------------------
     # Public method used by Game
     # ---------------------------------------------
     def find_best_move(self, board):
+        import time
+        start_time = time.perf_counter()
+
         best_move = None
         best_value = float("-inf")
 
@@ -354,5 +383,8 @@ class ChessAI:
 
         if best_move is not None:
             self.last_evaluation = best_value
+        
+        self.last_move_time = time.perf_counter() - start_time
+
         
         return best_move
