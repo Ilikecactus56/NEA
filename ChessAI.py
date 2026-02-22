@@ -104,31 +104,7 @@ class ChessAI:
 
         return score
     
-        piece = board_before.get_piece(from_pos)
-        target = board_before.get_piece(to_pos)
 
-        # Capture
-        if target is not None:
-            return "Capture"
-
-        # Check
-        board_copy = board_before.copy()
-        board_copy._force_move(from_pos, to_pos)
-        opponent = "black" if self.colour == "white" else "white"
-        if board_copy.is_in_check(opponent):
-            return "Check"
-
-        # Development (minor pieces leaving back rank)
-        if piece.__class__.__name__ in ("Knight", "Bishop"):
-            start_rank = 7 if self.colour == "white" else 0
-            if from_pos[0] == start_rank:
-                return "Development"
-
-        # Defensive (move blocks attack or removes threat)
-        if board_before.is_square_attacked(from_pos, self.colour):
-            return "Defensive"
-
-        return "Neutral"
     def analyse_position(self, board):
         """
         Updates evaluation + top moves WITHOUT making a move
